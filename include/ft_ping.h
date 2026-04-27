@@ -3,8 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 
 #define RESET   "\033[0m"
@@ -19,6 +21,15 @@
 
 #define DEBUG_FLAG 1
 #define DEBUG_TXT RED "DEBUG" RESET
+
+typedef struct icmp_s {
+	uint8_t type;
+	uint8_t code;
+	uint16_t checksum;
+	uint16_t identifier;
+	uint16_t sequence;
+	uint8_t payload[56];
+} icmp_t;
 
 typedef struct ping_s {
 	int socket_fd;
