@@ -51,6 +51,7 @@ static int check_options(int ac, char **av, ping_t *p) {
 			case 'v':
 				p->verbose_flag = 1;
 				ret_flag = 1;
+				break;
 			case '?':
 				if (optopt == '?') {
 					usage(av[0], "main :: case '?'");
