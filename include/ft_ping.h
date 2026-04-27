@@ -40,6 +40,7 @@ typedef struct ping_s {
 
 int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
+int create_icmp_datagram(icmp_t *datagram);
 
 void show_ping(ping_t *p);
 void debug(char *msg);

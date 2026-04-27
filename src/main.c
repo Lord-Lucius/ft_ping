@@ -8,6 +8,8 @@
 
 int main(int ac, char **av) {
 	ping_t def;
+	icmp_t datagram;
+
 	if (ac <= 1) {
 		usage(av[0], "MAIN :: ac <= 1");
 		exit(0);
@@ -15,6 +17,8 @@ int main(int ac, char **av) {
 	if (parse_ping(ac, av, &def) == -1)
 		return 1;
 	if (resolve_addr(&def) == -1)
+		return 1;
+	if (create_icmp_datagram(&datagram))
 		return 1;
 	show_ping(&def);
 	cleanup(&def);
