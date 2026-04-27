@@ -1,18 +1,22 @@
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
 
 int main(int ac, char **av) {
-	ping_t *def = NULL;
+	ping_t def;
 	if (ac <= 1) {
 		usage(av[0], "MAIN :: ac <= 1");
 		exit(0);
 	}
-	if (parse_ping(ac, av, def) == -1) {
-		fatal("Coudn't parse arguments\n");
-		exit(1);
-	}
+	if (parse_ping(ac, av, &def) == -1)
+		return 1;
+	if (resolve_addr(&def) == -1)
+		return 1;
+	show_ping(&def);
+	cleanup(&def);
 	return 0;
 }

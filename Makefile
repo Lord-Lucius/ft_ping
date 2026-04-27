@@ -10,7 +10,7 @@ NAME        := ft_ping
 #  Compilateur & flags                                                         #
 # ---------------------------------------------------------------------------- #
 CC          := cc
-CFLAGS      := -Wall -Wextra -Werror -std=gnu11
+CFLAGS      := -Wall -Wextra -Werror -std=gnu11 -g3
 CPPFLAGS    := -Iinclude -MMD -MP
 LDFLAGS     :=
 LDLIBS      :=

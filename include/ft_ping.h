@@ -23,13 +23,19 @@
 typedef struct ping_s {
 	int socket_fd;
 	char *target;
+	char resolved_target[20];
+	struct sockaddr_in dest_addr;
 	int verbose_flag;
 } ping_t;
 
 int parse_ping(int ac, char **av, ping_t *p);
+int resolve_addr(ping_t *p);
 
+void show_ping(ping_t *p);
 void debug(char *msg);
 void fatal(char *msg);
 void usage(char *program_name, char *call_position);
+
+void cleanup(ping_t *p);
 
 #endif
