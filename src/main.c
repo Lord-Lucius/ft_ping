@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
@@ -19,15 +20,25 @@ int main(int ac, char **av) {
 	if (resolve_addr(&def) == -1)
 		return 1;
 	bzero(&datagram, sizeof(datagram));
-	if (create_icmp_datagram(&datagram))
+	if (create_icmp_datagram(&datagram) == -1)
 		return 1;
-	uint8_t *bytes = (uint8_t *)&datagram;
-	for (size_t i = 0; i < sizeof(datagram); i++) {
-		printf("%02x ", bytes[i]);
-		if ((i + 1) % 16 == 0) printf("\n");
+
+	if (DEBUG_FLAG) {
+		uint8_t *bytes = (uint8_t *)&datagram;
+		for (size_t i = 0; i < sizeof(datagram); i++) {
+			printf("%02x ", bytes[i]);
+			if ((i + 1) % 16 == 0) printf("\n");
+		}
+		printf("\n");
 	}
-	printf("\n");
-	show_ping(&def, &datagram);
+
+	printf("PING %s (%s): %lu\n", def.target, def.resolved_target, sizeof(datagram.payload));
+	while (1) {
+		ssize_t recv_bytes = ping_once(&def, &datagram);
+		print_bytes(recv_bytes, def.recv_buffer);
+		datagram.sequence++;
+		sleep(1);
+	}
 	cleanup(&def);
 	return 0;
 }

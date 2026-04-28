@@ -6,8 +6,13 @@
 
 #include "ft_ping.h"
 
-void show_ping(ping_t *p, icmp_t *datagram) {
-	printf("PING %s (%s): %lu\n", p->target, p->resolved_target, sizeof(datagram->payload));
+void print_bytes(ssize_t received, char *buffer) {
+	printf("Received %zd bytes:\n", received);
+	for (ssize_t i = 0; i < received; i++) {
+		printf("%02x ", ((uint8_t *)buffer)[i]);
+		if ((i + 1) % 16 == 0) printf("\n");
+	}
+	printf("\n");
 }
 
 void debug(char *msg) {
