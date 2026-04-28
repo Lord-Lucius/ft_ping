@@ -17,6 +17,7 @@ int main(int ac, char **av) {
 		usage(av[0], "MAIN :: ac <= 1");
 		exit(0);
 	}
+	set_sigaction();
 	if (parse_ping(ac, av, &def) == -1)
 		return 1;
 	if (resolve_addr(&def) == -1)
@@ -33,16 +34,22 @@ int main(int ac, char **av) {
 	}
 
 	printf("PING %s (%s): %lu\n", def.target, def.resolved_target, sizeof(datagram.payload));
-	while (1) {
+	while (g_sig == 0) {
 		if (create_icmp_datagram(&datagram) == -1)
 			return 1;
-		if (ping_once(&def, &datagram, &response) != 0)
+		int ret = ping_once(&def, &datagram, &response);
+		if (ret == -1)
 			return 1;
+		if (ret == 1)
+			break;
 		print_bytes(&response);
 		sequence++;
 		datagram.sequence = htons(sequence);
 		sleep(1);
+		if (g_sig)
+			break;
 	}
+	debug("exit clean after ctrl+c");
 	cleanup(&def);
 	return 0;
 }

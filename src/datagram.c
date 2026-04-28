@@ -1,4 +1,5 @@
-#include <_time.h>
+#include <sys/errno.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
@@ -11,6 +12,8 @@ int ping_once(ping_t *def, icmp_t *datagram, response_t *response) {
 	}
 
 	if ((response->recv_bytes = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE, 0, (struct sockaddr *)&response->src_addr, &response->src_len)) == -1) {
+		if (errno == EINTR)
+			return 1;
 		fatal("recvfrom failed");
 		return -1;
 	}
@@ -38,7 +41,7 @@ int create_icmp_datagram(icmp_t *datagram) {
 	datagram->code = 0x00;
 	datagram->checksum = 0;
 	datagram->identifier = htons(getpid() & 0xFFFF);
-	datagram->sequence = htons(0);
+	datagram->sequence = 0;
 	struct timespec *ts = (struct timespec *)datagram->payload;
 	clock_gettime(CLOCK_MONOTONIC, ts);
 	for (int i = 16; i < 56; i++)

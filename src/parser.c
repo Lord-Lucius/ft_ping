@@ -37,9 +37,8 @@ int resolve_addr(ping_t *p) {
 	return 0;
 }
 
-static int check_options(int ac, char **av, ping_t *p) {
+static void check_options(int ac, char **av, ping_t *p) {
 	int opt;
-	int ret_flag = 0;
 
 	while ((opt = getopt(ac, av, "v?")) != -1) {
 		if (DEBUG_FLAG) {
@@ -50,19 +49,14 @@ static int check_options(int ac, char **av, ping_t *p) {
 		switch (opt) {
 			case 'v':
 				p->verbose_flag = 1;
-				ret_flag = 1;
 				break;
 			case '?':
-				if (optopt == '?') {
-					usage(av[0], "main :: case '?'");
-					exit(1);
-				}
-				continue;
+				usage(av[0], "main :: case '?'");
+				exit(0);
 			default:
 				break;
 		}
 	}
-	return ret_flag;
 }
 
 static int initialize_default_ping(ping_t *p) {
@@ -81,9 +75,12 @@ static int initialize_default_ping(ping_t *p) {
 int parse_ping(int ac, char **av, ping_t *p) {
 	if (initialize_default_ping(p) == -1)
 		return (-1);
-	if (check_options(ac, av, p) != 0)
-		p->target = av[2];
-	else
-		p->target = av[1];
+	check_options(ac, av, p);
+
+	if (optind >= ac) {
+		fatal("no tagert given");
+		return -1;
+	}
+	p->target = av[optind];
 	return (0);
 }

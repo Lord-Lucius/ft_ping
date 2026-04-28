@@ -1,5 +1,5 @@
-#ifndef MAIN_H
-# define MAIN_H
+#ifndef FT_PING_H
+# define FT_PING_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,10 +18,12 @@
 #define CYAN    "\033[36m"
 #define WHITE   "\033[37m"
 
-#define DEBUG_FLAG 0
+#define DEBUG_FLAG 1
 #define DEBUG_TXT RED "DEBUG" RESET
 
 #define BUFFER_SIZE 1024
+
+extern volatile sig_atomic_t g_sig;
 
 typedef struct response_s {
 	char recv_buffer[BUFFER_SIZE];
@@ -43,10 +45,12 @@ typedef struct icmp_s {
 typedef struct ping_s {
 	int socket_fd;
 	char *target;
-	char resolved_target[20];
+	char resolved_target[INET_ADDRSTRLEN];
 	struct sockaddr_in dest_addr;
 	int verbose_flag;
 } ping_t;
+
+void set_sigaction(void);
 
 int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
