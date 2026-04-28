@@ -42,7 +42,7 @@ int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
 int create_icmp_datagram(icmp_t *datagram);
 
-void show_ping(ping_t *p);
+void show_ping(ping_t *p, icmp_t *datagram);
 void debug(char *msg);
 void fatal(char *msg);
 void usage(char *program_name, char *call_position);

@@ -6,8 +6,8 @@
 
 #include "ft_ping.h"
 
-void show_ping(ping_t *p) {
-	printf("PING %s (%s): <payload_size>\n", p->target, p->resolved_target);
+void show_ping(ping_t *p, icmp_t *datagram) {
+	printf("PING %s (%s): %lu\n", p->target, p->resolved_target, sizeof(datagram->payload));
 }
 
 void debug(char *msg) {

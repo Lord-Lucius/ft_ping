@@ -18,9 +18,16 @@ int main(int ac, char **av) {
 		return 1;
 	if (resolve_addr(&def) == -1)
 		return 1;
+	bzero(&datagram, sizeof(datagram));
 	if (create_icmp_datagram(&datagram))
 		return 1;
-	show_ping(&def);
+	uint8_t *bytes = (uint8_t *)&datagram;
+	for (size_t i = 0; i < sizeof(datagram); i++) {
+		printf("%02x ", bytes[i]);
+		if ((i + 1) % 16 == 0) printf("\n");
+	}
+	printf("\n");
+	show_ping(&def, &datagram);
 	cleanup(&def);
 	return 0;
 }
