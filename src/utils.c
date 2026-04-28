@@ -6,10 +6,10 @@
 
 #include "ft_ping.h"
 
-void print_bytes(ssize_t received, char *buffer) {
-	printf("Received %zd bytes:\n", received);
-	for (ssize_t i = 0; i < received; i++) {
-		printf("%02x ", ((uint8_t *)buffer)[i]);
+void print_bytes(response_t *response) {
+	printf("Received %zd bytes:\n", response->recv_bytes);
+	for (ssize_t i = 0; i < response->recv_bytes; i++) {
+		printf("%02x ", ((uint8_t *)response->recv_buffer)[i]);
 		if ((i + 1) % 16 == 0) printf("\n");
 	}
 	printf("\n");

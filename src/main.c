@@ -8,8 +8,10 @@
 #include "ft_ping.h"
 
 int main(int ac, char **av) {
+	uint16_t sequence = 0;
 	ping_t def;
 	icmp_t datagram;
+	response_t response;
 
 	if (ac <= 1) {
 		usage(av[0], "MAIN :: ac <= 1");
@@ -20,8 +22,6 @@ int main(int ac, char **av) {
 	if (resolve_addr(&def) == -1)
 		return 1;
 	bzero(&datagram, sizeof(datagram));
-	if (create_icmp_datagram(&datagram) == -1)
-		return 1;
 
 	if (DEBUG_FLAG) {
 		uint8_t *bytes = (uint8_t *)&datagram;
@@ -34,9 +34,13 @@ int main(int ac, char **av) {
 
 	printf("PING %s (%s): %lu\n", def.target, def.resolved_target, sizeof(datagram.payload));
 	while (1) {
-		ssize_t recv_bytes = ping_once(&def, &datagram);
-		print_bytes(recv_bytes, def.recv_buffer);
-		datagram.sequence++;
+		if (create_icmp_datagram(&datagram) == -1)
+			return 1;
+		if (ping_once(&def, &datagram, &response) != 0)
+			return 1;
+		print_bytes(&response);
+		sequence++;
+		datagram.sequence = htons(sequence);
 		sleep(1);
 	}
 	cleanup(&def);

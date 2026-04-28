@@ -21,6 +21,16 @@
 #define DEBUG_FLAG 0
 #define DEBUG_TXT RED "DEBUG" RESET
 
+#define BUFFER_SIZE 1024
+
+typedef struct response_s {
+	char recv_buffer[BUFFER_SIZE];
+	struct sockaddr_in src_addr;
+	socklen_t src_len;
+	ssize_t send_bytes;
+	ssize_t recv_bytes;
+} response_t;
+
 typedef struct icmp_s {
 	uint8_t type;
 	uint8_t code;
@@ -36,15 +46,14 @@ typedef struct ping_s {
 	char resolved_target[20];
 	struct sockaddr_in dest_addr;
 	int verbose_flag;
-	char recv_buffer[1024];
 } ping_t;
 
 int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
 int create_icmp_datagram(icmp_t *datagram);
-int ping_once(ping_t *def, icmp_t *datagram);
+int ping_once(ping_t *def, icmp_t *datagram, response_t *response);
 
-void print_bytes(ssize_t received, char *buffer);
+void print_bytes(response_t *response);
 void debug(char *msg);
 void fatal(char *msg);
 void usage(char *program_name, char *call_position);

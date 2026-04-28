@@ -3,22 +3,18 @@
 
 #include "ft_ping.h"
 
-int ping_once(ping_t *def, icmp_t *datagram) {
-	struct sockaddr_in src_addr;
-	socklen_t src_len = sizeof(src_addr);
-	ssize_t send_bytes;
-	ssize_t recv_bytes;
-
-	if ((send_bytes = sendto(def->socket_fd, datagram, sizeof(*datagram), 0, (const struct sockaddr *)&def->dest_addr, sizeof(def->dest_addr))) == -1) {
+int ping_once(ping_t *def, icmp_t *datagram, response_t *response) {
+	response->src_len = sizeof(response->src_addr);
+	if ((response->send_bytes = sendto(def->socket_fd, datagram, sizeof(*datagram), 0, (const struct sockaddr *)&def->dest_addr, sizeof(def->dest_addr))) == -1) {
 		fatal("sendto failed");
 		return -1;
 	}
 
-	if ((recv_bytes = recvfrom(def->socket_fd, def->recv_buffer, sizeof(def->recv_buffer), 0, (struct sockaddr *)&src_addr, &src_len)) == -1) {
+	if ((response->recv_bytes = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE, 0, (struct sockaddr *)&response->src_addr, &response->src_len)) == -1) {
 		fatal("recvfrom failed");
 		return -1;
 	}
-	return recv_bytes;
+	return 0;
 }
 
 uint16_t calculate_checksum(void *data, size_t len) {
