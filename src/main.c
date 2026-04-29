@@ -1,32 +1,40 @@
+#include <errno.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include "ft_ping.h"
 
 int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	uint16_t sequence = 0;
 
-	create_icmp_datagram(datagram);
-	if (ping_send(def, datagram, response) == -1)
-		return -1;
-	sequence++;
+	printf("PING %s (%s): %lu bytes\n", def->target, def->resolved_target,
+		   sizeof(datagram->payload));
 
 	start_time();
-	printf("PING %s (%s): %lu\n", def->target, def->resolved_target, sizeof(datagram->payload));
+
 	while (!g_sig) {
-		ssize_t n = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE, 0, (struct sockaddr *)&response->src_addr, &response->src_len);
-		printf("%lu\n", n);
+		response->src_len = sizeof(response->src_addr);
+
+		ssize_t n = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE,
+							 0, (struct sockaddr *)&response->src_addr,
+							 &response->src_len);
+
 		if (n < 0) {
 			if (errno == EINTR) {
 				if (g_alarm) {
 					create_icmp_datagram(datagram);
 					datagram->sequence = htons(sequence);
-					ping_send(def, datagram, response);
+					datagram->checksum = 0;
+					datagram->checksum =
+						calculate_checksum(datagram, sizeof(*datagram));
+
+					if (ping_send(def, datagram, response) == -1)
+						return -1;
+
 					sequence++;
 					g_alarm = 0;
 				}
@@ -35,8 +43,11 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 			fatal("recvfrom failed");
 			return -1;
 		}
+
+		response->recv_bytes = n;
 		print_bytes(response);
 	}
+
 	return 0;
 }
 

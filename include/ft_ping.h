@@ -59,6 +59,7 @@ int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
 void create_icmp_datagram(icmp_t *datagram);
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
+uint16_t calculate_checksum(void *data, size_t len);
 
 void print_bytes(response_t *response);
 void debug(char *msg);
