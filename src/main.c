@@ -4,11 +4,43 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "ft_ping.h"
 
-int main(int ac, char **av) {
+int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	uint16_t sequence = 0;
+
+	create_icmp_datagram(datagram);
+	if (ping_send(def, datagram, response) == -1)
+		return -1;
+	sequence++;
+
+	start_time();
+	printf("PING %s (%s): %lu\n", def->target, def->resolved_target, sizeof(datagram->payload));
+	while (!g_sig) {
+		ssize_t n = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE, 0, (struct sockaddr *)&response->src_addr, &response->src_len);
+		printf("%lu\n", n);
+		if (n < 0) {
+			if (errno == EINTR) {
+				if (g_alarm) {
+					create_icmp_datagram(datagram);
+					datagram->sequence = htons(sequence);
+					ping_send(def, datagram, response);
+					sequence++;
+					g_alarm = 0;
+				}
+				continue;
+			}
+			fatal("recvfrom failed");
+			return -1;
+		}
+		print_bytes(response);
+	}
+	return 0;
+}
+
+int main(int ac, char **av) {
 	ping_t def;
 	icmp_t datagram;
 	response_t response;
@@ -24,31 +56,9 @@ int main(int ac, char **av) {
 		return 1;
 	bzero(&datagram, sizeof(datagram));
 
-	if (DEBUG_FLAG) {
-		uint8_t *bytes = (uint8_t *)&datagram;
-		for (size_t i = 0; i < sizeof(datagram); i++) {
-			printf("%02x ", bytes[i]);
-			if ((i + 1) % 16 == 0) printf("\n");
-		}
-		printf("\n");
-	}
+	if (run(&def, &datagram, &response) == -1)
+		return 1;
 
-	printf("PING %s (%s): %lu\n", def.target, def.resolved_target, sizeof(datagram.payload));
-	while (g_sig == 0) {
-		if (create_icmp_datagram(&datagram) == -1)
-			return 1;
-		int ret = ping_once(&def, &datagram, &response);
-		if (ret == -1)
-			return 1;
-		if (ret == 1)
-			break;
-		print_bytes(&response);
-		sequence++;
-		datagram.sequence = htons(sequence);
-		sleep(1);
-		if (g_sig)
-			break;
-	}
 	debug("exit clean after ctrl+c");
 	cleanup(&def);
 	return 0;

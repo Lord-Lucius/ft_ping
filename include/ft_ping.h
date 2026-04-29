@@ -1,6 +1,7 @@
 #ifndef FT_PING_H
 # define FT_PING_H
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -18,12 +19,13 @@
 #define CYAN    "\033[36m"
 #define WHITE   "\033[37m"
 
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 #define DEBUG_TXT RED "DEBUG" RESET
 
 #define BUFFER_SIZE 1024
 
 extern volatile sig_atomic_t g_sig;
+extern volatile sig_atomic_t g_alarm;
 
 typedef struct response_s {
 	char recv_buffer[BUFFER_SIZE];
@@ -51,11 +53,12 @@ typedef struct ping_s {
 } ping_t;
 
 void set_sigaction(void);
+void start_time(void);
 
 int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
-int create_icmp_datagram(icmp_t *datagram);
-int ping_once(ping_t *def, icmp_t *datagram, response_t *response);
+void create_icmp_datagram(icmp_t *datagram);
+int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
 
 void print_bytes(response_t *response);
 void debug(char *msg);
