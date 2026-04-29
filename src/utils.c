@@ -1,8 +1,8 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 #include <unistd.h>
-#include <string.h>
 
 #include "ft_ping.h"
 
@@ -10,7 +10,8 @@ void print_bytes(response_t *response) {
 	printf("Received %zd bytes:\n", response->recv_bytes);
 	for (ssize_t i = 0; i < response->recv_bytes; i++) {
 		printf("%02x ", ((uint8_t *)response->recv_buffer)[i]);
-		if ((i + 1) % 16 == 0) printf("\n");
+		if ((i + 1) % 16 == 0)
+			printf("\n");
 	}
 	printf("\n");
 }
@@ -20,14 +21,13 @@ void debug(char *msg) {
 	fprintf(stderr, "%s\n", msg);
 }
 
-void fatal(char *msg) {
-	fprintf(stderr, "[%sERROR%s] %s", RED, RESET, msg);
-}
+void fatal(char *msg) { fprintf(stderr, "[%sERROR%s] %s", RED, RESET, msg); }
 
 void usage(char *program_name, char *call_position) {
 	if (DEBUG_FLAG) {
 		char debug_txt[200];
-		snprintf(debug_txt, sizeof(debug_txt), "USAGE: function call position: %s", call_position);
+		snprintf(debug_txt, sizeof(debug_txt),
+				 "USAGE: function call position: %s", call_position);
 		debug(debug_txt);
 	}
 	fprintf(stderr, "Usage: \n");
