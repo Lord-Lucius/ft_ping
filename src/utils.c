@@ -6,6 +6,26 @@
 
 #include "ft_ping.h"
 
+/*
+	PING 127.0.0.1 (127.0.0.1): 56 data bytes
+	64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.080 ms
+	64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.124 ms
+	64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.121 ms
+	64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.128 ms
+	64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.130 ms
+	64 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=0.154 ms
+	64 bytes from 127.0.0.1: icmp_seq=6 ttl=64 time=0.129 ms
+	^C
+	--- 127.0.0.1 ping statistics ---
+	7 packets transmitted, 7 packets received, 0.0% packet loss
+	round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
+*/
+
+void print_recv_packet(response_t *response) {
+	(void)response;
+	printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number> ttl=<size_i_guess> time=<time_to_receive> ms\n");
+}
+
 void print_bytes(response_t *response) {
 	printf("Received %zd bytes:\n", response->recv_bytes);
 	for (ssize_t i = 0; i < response->recv_bytes; i++) {

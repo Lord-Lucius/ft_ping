@@ -50,6 +50,8 @@ typedef struct ping_s {
 	char resolved_target[INET_ADDRSTRLEN];
 	struct sockaddr_in dest_addr;
 	int verbose_flag;
+	int packet_sended;
+	int packet_received;
 } ping_t;
 
 void set_sigaction(void);
@@ -61,6 +63,7 @@ void create_icmp_datagram(icmp_t *datagram);
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
 uint16_t calculate_checksum(void *data, size_t len);
 
+void print_recv_packet(response_t *response);
 void print_bytes(response_t *response);
 void debug(char *msg);
 void fatal(char *msg);

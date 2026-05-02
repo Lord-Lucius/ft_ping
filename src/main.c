@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "ft_ping.h"
 
@@ -36,6 +37,7 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 						return -1;
 
 					sequence++;
+					def->packet_sended++;
 					g_alarm = 0;
 				}
 				continue;
@@ -45,10 +47,16 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 		}
 
 		response->recv_bytes = n;
-		print_bytes(response);
+		def->packet_received++;
+		print_recv_packet(response);
 	}
 
 	return 0;
+}
+
+void exiting_stats(ping_t *def) {
+	printf("\n--- %s ping statistics ---\n", def->target);
+	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n", def->packet_sended, def->packet_received, (float)((def->packet_sended - def->packet_received) * 100.0f) / def->packet_sended);
 }
 
 int main(int ac, char **av) {
@@ -70,7 +78,7 @@ int main(int ac, char **av) {
 	if (run(&def, &datagram, &response) == -1)
 		return 1;
 
-	debug("exit clean after ctrl+c");
+	exiting_stats(&def);
 	cleanup(&def);
 	return 0;
 }
