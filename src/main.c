@@ -5,7 +5,6 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <math.h>
 
 #include "ft_ping.h"
 
