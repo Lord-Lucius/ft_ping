@@ -21,9 +21,22 @@
 	round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
 */
 
+void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
+	printf("test\n");
+}
+
 void print_recv_packet(response_t *response) {
 	(void)response;
-	printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number> ttl=<size_i_guess> time=<time_to_receive> ms\n");
+	print_bytes(response);
+	// printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number> ttl=<size_i_guess> time=<time_to_receive> ms\n");
+}
+
+void print_exiting_stats(ping_t *def) {
+	printf("\n--- %s ping statistics ---\n", def->target);
+	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n",
+		   def->packet_sended, def->packet_received,
+		   (float)((def->packet_sended - def->packet_received) * 100.0f) /
+			   def->packet_sended);
 }
 
 void print_bytes(response_t *response) {

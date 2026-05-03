@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <netdb.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -7,6 +8,17 @@
 #include <unistd.h>
 
 #include "ft_ping.h"
+
+int check_icmp_type(ping_t *def, response_t *response) {
+	icmp_t *reply = get_reply_icmp(response);
+
+	if (reply->type != 0) {
+		return 2;
+	}
+	if (reply->identifier != htons(getpid() & 0xFFFF))
+		return 1;
+	return 0;
+}
 
 int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	uint16_t sequence = 0;
@@ -45,17 +57,19 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 			return -1;
 		}
 
+		int t = check_icmp_type(def, response);
+		if (t != 0) {
+			if (def->verbose_flag && t == 2)
+				print_verbose_error(get_reply_icmp(response), n);
+			continue;
+		}
+
 		response->recv_bytes = n;
 		def->packet_received++;
 		print_recv_packet(response);
 	}
 
 	return 0;
-}
-
-void exiting_stats(ping_t *def) {
-	printf("\n--- %s ping statistics ---\n", def->target);
-	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n", def->packet_sended, def->packet_received, (float)((def->packet_sended - def->packet_received) * 100.0f) / def->packet_sended);
 }
 
 int main(int ac, char **av) {
@@ -77,7 +91,7 @@ int main(int ac, char **av) {
 	if (run(&def, &datagram, &response) == -1)
 		return 1;
 
-	exiting_stats(&def);
+	print_exiting_stats(&def);
 	cleanup(&def);
 	return 0;
 }

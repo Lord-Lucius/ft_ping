@@ -4,7 +4,8 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
+// #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -77,6 +78,8 @@ static int initialize_default_ping(ping_t *p) {
 	}
 	p->target = "";
 	p->verbose_flag = 0;
+	p->packet_sended = 0;
+	p->packet_received = 0;
 	return (0);
 }
 

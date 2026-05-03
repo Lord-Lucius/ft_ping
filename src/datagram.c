@@ -4,9 +4,18 @@
 
 #include "ft_ping.h"
 
+icmp_t *get_reply_icmp(response_t *response) {
+	uint8_t *buf = (uint8_t *)response->recv_buffer;
+	size_t ip_hdr_len = (size_t)(buf[0] & 0x0F) * 4;
+	return ((icmp_t *)(buf + ip_hdr_len));
+}
+
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response) {
 	response->src_len = sizeof(response->src_addr);
-	if ((response->send_bytes = sendto(def->socket_fd, datagram, sizeof(*datagram), 0, (const struct sockaddr *)&def->dest_addr, sizeof(def->dest_addr))) == -1) {
+	if ((response->send_bytes =
+			 sendto(def->socket_fd, datagram, sizeof(*datagram), 0,
+					(const struct sockaddr *)&def->dest_addr,
+					sizeof(def->dest_addr))) == -1) {
 		fatal("sendto failed");
 		return -1;
 	}
@@ -37,7 +46,7 @@ void create_icmp_datagram(icmp_t *datagram) {
 	datagram->sequence = 0;
 	struct timespec *ts = (struct timespec *)datagram->payload;
 	clock_gettime(CLOCK_MONOTONIC, ts);
-	for (int i = 16; i < 56; i++)
+	for (int i = 16; i < PAYLOAD_SIZE; i++)
 		datagram->payload[i] = 0x10 + (i - 16);
 	datagram->checksum = calculate_checksum(datagram, sizeof(*datagram));
 }
