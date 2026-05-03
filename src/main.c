@@ -9,17 +9,6 @@
 
 #include "ft_ping.h"
 
-int check_icmp_type(ping_t *def, response_t *response) {
-	icmp_t *reply = get_reply_icmp(response);
-
-	if (reply->type != 0) {
-		return 2;
-	}
-	if (reply->identifier != htons(getpid() & 0xFFFF))
-		return 1;
-	return 0;
-}
-
 int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	uint16_t sequence = 0;
 
@@ -57,9 +46,9 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 			return -1;
 		}
 
-		int t = check_icmp_type(def, response);
-		if (t != 0) {
-			if (def->verbose_flag && t == 2)
+		int t = check_icmp_type(response);
+		if (t != ICMP_FOR_US) {
+			if (def->verbose_flag && t == ICMP_ANOMALY)
 				print_verbose_error(get_reply_icmp(response), n);
 			continue;
 		}

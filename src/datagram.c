@@ -4,6 +4,19 @@
 
 #include "ft_ping.h"
 
+int check_icmp_type(response_t *response) {
+	icmp_t *reply = get_reply_icmp(response);
+
+	if (reply->type != 0) {
+		if (reply->type == 8)
+			return ICMP_OUR_REQUEST;
+		return ICMP_ANOMALY;
+	}
+	if (reply->identifier != htons(getpid() & 0xFFFF))
+		return ICMP_ANOMALY;
+	return ICMP_FOR_US;
+}
+
 icmp_t *get_reply_icmp(response_t *response) {
 	uint8_t *buf = (uint8_t *)response->recv_buffer;
 	size_t ip_hdr_len = (size_t)(buf[0] & 0x0F) * 4;

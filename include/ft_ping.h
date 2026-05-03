@@ -28,6 +28,12 @@
 extern volatile sig_atomic_t g_sig;
 extern volatile sig_atomic_t g_alarm;
 
+typedef enum icmp_filter_e {
+	ICMP_FOR_US = 0,
+	ICMP_ANOMALY = 1,
+	ICMP_OUR_REQUEST = 2
+} icmp_filter_t;
+
 typedef struct response_s {
 	char recv_buffer[BUFFER_SIZE];
 	struct sockaddr_in src_addr;
@@ -64,6 +70,7 @@ void create_icmp_datagram(icmp_t *datagram);
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
 uint16_t calculate_checksum(void *data, size_t len);
 icmp_t *get_reply_icmp(response_t *response);
+int check_icmp_type(response_t *response);
 
 void print_verbose_error(icmp_t *reply, ssize_t bytes_recv);
 void print_recv_packet(response_t *response);
