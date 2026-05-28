@@ -1,7 +1,13 @@
 #include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <arpa/inet.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
@@ -27,10 +33,17 @@ void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 }
 
 void print_recv_packet(response_t *response) {
-	// print_bytes(response);
-	ssize_t packet_size_resolved = response->recv_bytes - 20;
-	printf("%zd bytes from <tmp>: icmp_seq=<tmp> ttl=<tmp> time=<tmp> ms\n",
-		   packet_size_resolved);
+
+	struct iphdr *ip = (struct iphdr *)response->recv_buffer;
+	size_t ip_header_size = (size_t)ip->ihl * 4;
+	icmp_t *icmp = (icmp_t *)(response->recv_buffer + ip_header_size);
+
+	size_t packet_size = response->recv_bytes - ip_header_size;
+	char ip_address_str[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str, INET_ADDRSTRLEN);
+
+	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=<tmp> ms\n",
+		   packet_size, ip_address_str, ntohs(icmp->sequence), ip->ttl);
 	// printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number>
 	// ttl=<size_i_guess> time=<time_to_receive> ms\n");
 }
