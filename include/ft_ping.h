@@ -1,5 +1,5 @@
 #ifndef FT_PING_H
-# define FT_PING_H
+#define FT_PING_H
 
 #include <signal.h>
 #include <stdio.h>
@@ -9,15 +9,15 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 
-#define RESET   "\033[0m"
-#define BLACK   "\033[30m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
+#define RESET "\033[0m"
+#define BLACK "\033[30m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
 #define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define WHITE   "\033[37m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
 
 #define DEBUG_FLAG 0
 #define DEBUG_TXT RED "DEBUG" RESET

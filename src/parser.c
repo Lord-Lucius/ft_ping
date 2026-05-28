@@ -13,6 +13,10 @@
 #include "ft_ping.h"
 
 int resolve_addr(ping_t *p) {
+	if (DEBUG_FLAG) {
+		debug("=== entered RESOLVE_ADDR function ===");
+	}
+
 	struct addrinfo hints;
 	struct addrinfo *res;
 
@@ -41,10 +45,18 @@ int resolve_addr(ping_t *p) {
 		return -1;
 	}
 	freeaddrinfo(res);
+
+	if (DEBUG_FLAG) {
+		debug("=== exited RESOLVE_ADDR function ===");
+	}
 	return 0;
 }
 
 static void check_options(int ac, char **av, ping_t *p) {
+	if (DEBUG_FLAG) {
+		debug("=== entered CHECK_OPTIONS function ===");
+	}
+
 	int opt;
 
 	while ((opt = getopt(ac, av, "v?")) != -1) {
@@ -65,9 +77,17 @@ static void check_options(int ac, char **av, ping_t *p) {
 			break;
 		}
 	}
+
+	if (DEBUG_FLAG) {
+		debug("=== exited CHECK_OPTIONS function ===");
+	}
 }
 
 static int initialize_default_ping(ping_t *p) {
+	if (DEBUG_FLAG) {
+		debug("=== entered INITIALIZE_DEFAULT_PING function ===");
+	}
+
 	p->socket_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (p->socket_fd == -1) {
 		char tmp[200];
@@ -76,16 +96,31 @@ static int initialize_default_ping(ping_t *p) {
 		fatal(tmp);
 		return (-1);
 	}
+	if (DEBUG_FLAG) {
+		debug("passed the socket initialization");
+	}
 	p->target = "";
 	p->verbose_flag = 0;
 	p->packet_sended = 0;
 	p->packet_received = 0;
+
+	if (DEBUG_FLAG) {
+		debug("=== exited INITIALIZE_DEFAULT_PING function ===");
+	}
 	return (0);
 }
 
 int parse_ping(int ac, char **av, ping_t *p) {
-	if (initialize_default_ping(p) == -1)
+	if (DEBUG_FLAG) {
+		debug("=== entered PARSE_PING function ===");
+	}
+
+	if (initialize_default_ping(p) == -1) {
 		return (-1);
+	}
+	if (DEBUG_FLAG) {
+		debug("passed initialize_default_ping successfully");
+	}
 	check_options(ac, av, p);
 
 	if (optind >= ac) {
@@ -93,5 +128,9 @@ int parse_ping(int ac, char **av, ping_t *p) {
 		return -1;
 	}
 	p->target = av[optind];
+
+	if (DEBUG_FLAG) {
+		debug("=== exited PARSE_PING function ===");
+	}
 	return (0);
 }

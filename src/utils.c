@@ -27,8 +27,10 @@ void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 }
 
 void print_recv_packet(response_t *response) {
-	(void)response;
-	print_bytes(response);
+	// print_bytes(response);
+	ssize_t packet_size_resolved = response->recv_bytes - 20;
+	printf("%zd bytes from <tmp>: icmp_seq=<tmp> ttl=<tmp> time=<tmp> ms\n",
+		   packet_size_resolved);
 	// printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number>
 	// ttl=<size_i_guess> time=<time_to_receive> ms\n");
 }
@@ -37,16 +39,17 @@ void print_exiting_stats(ping_t *def) {
 	printf("\n--- %s ping statistics ---\n", def->target);
 	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n",
 		   def->packet_sended, def->packet_received,
-		   (float)((def->packet_sended - def->packet_received) * 100.0f) /
-			   def->packet_sended);
+		   ((float)(def->packet_sended - def->packet_received) * 100.0F) /
+			   (float)def->packet_sended);
 }
 
 void print_bytes(response_t *response) {
 	printf("Received %zd bytes:\n", response->recv_bytes);
 	for (ssize_t i = 0; i < response->recv_bytes; i++) {
 		printf("%02x ", ((uint8_t *)response->recv_buffer)[i]);
-		if ((i + 1) % 16 == 0)
+		if ((i + 1) % 16 == 0) {
 			printf("\n");
+		}
 	}
 	printf("\n");
 }
@@ -56,7 +59,9 @@ void debug(char *msg) {
 	fprintf(stderr, "%s\n", msg);
 }
 
-void fatal(char *msg) { fprintf(stderr, "[%sERROR%s] %s", RED, RESET, msg); }
+void fatal(char *msg) {
+	fprintf(stderr, "[%sERROR%s] %s", RED, RESET, msg);
+}
 
 void usage(char *program_name, char *call_position) {
 	if (DEBUG_FLAG) {
@@ -75,6 +80,7 @@ void usage(char *program_name, char *call_position) {
 }
 
 void cleanup(ping_t *p) {
-	if (p->socket_fd >= 0)
+	if (p->socket_fd >= 0) {
 		close(p->socket_fd);
+	}
 }

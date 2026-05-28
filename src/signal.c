@@ -1,6 +1,6 @@
 #include <signal.h>
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 #include <sys/signal.h>
 #include <sys/time.h>
 
@@ -21,17 +21,23 @@ void start_time(void) {
 }
 
 void handler(int signal) {
-	if (signal == SIGINT)
-		g_sig = 1;
-	if (signal == SIGALRM)
-		g_alarm = 1;
+	if (signal == SIGINT) g_sig = 1;
+	if (signal == SIGALRM) g_alarm = 1;
 }
 
 void set_sigaction(void) {
+	if (DEBUG_FLAG) {
+		debug("=== entered SET_SIGACTION function ===");
+	}
+
 	struct sigaction act;
-	bzero(&act, sizeof(act));
+	memset(&act, 0, sizeof(act));
 	act.sa_handler = &handler;
 	act.sa_flags = 0;
 	sigaction(SIGINT, &act, NULL);
 	sigaction(SIGALRM, &act, NULL);
+
+	if (DEBUG_FLAG) {
+		debug("=== exited SET_SIGACTION function ===");
+	}
 }

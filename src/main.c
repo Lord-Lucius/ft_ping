@@ -3,13 +3,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
 
 int run(ping_t *def, icmp_t *datagram, response_t *response) {
+	if (DEBUG_FLAG) {
+		debug("=== entered RUN function ===");
+	}
 	uint16_t sequence = 0;
 
 	printf("PING %s (%s): %lu bytes\n", def->target, def->resolved_target,
@@ -33,8 +36,9 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 					datagram->checksum =
 						calculate_checksum(datagram, sizeof(*datagram));
 
-					if (ping_send(def, datagram, response) == -1)
+					if (ping_send(def, datagram, response) == -1) {
 						return -1;
+					}
 
 					sequence++;
 					def->packet_sended++;
@@ -48,8 +52,9 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 
 		int t = check_icmp_type(response);
 		if (t != ICMP_FOR_US) {
-			if (def->verbose_flag && t == ICMP_ANOMALY)
+			if (def->verbose_flag && t == ICMP_ANOMALY) {
 				print_verbose_error(get_reply_icmp(response), n);
+			}
 			continue;
 		}
 
@@ -58,10 +63,17 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 		print_recv_packet(response);
 	}
 
+	if (DEBUG_FLAG) {
+		debug("=== exited RUN function ===");
+	}
 	return 0;
 }
 
 int main(int ac, char **av) {
+	if (DEBUG_FLAG) {
+		debug("=== entered main function ===");
+	}
+
 	ping_t def;
 	icmp_t datagram;
 	response_t response;
@@ -71,16 +83,23 @@ int main(int ac, char **av) {
 		exit(0);
 	}
 	set_sigaction();
-	if (parse_ping(ac, av, &def) == -1)
-		return 1;
-	if (resolve_addr(&def) == -1)
-		return 1;
-	bzero(&datagram, sizeof(datagram));
+	if (parse_ping(ac, av, &def) == -1) {
+		return (1);
+	}
+	if (resolve_addr(&def) == -1) {
+		return (1);
+	}
+	memset(&datagram, 0, sizeof(datagram));
 
-	if (run(&def, &datagram, &response) == -1)
-		return 1;
+	if (run(&def, &datagram, &response) == -1) {
+		return (1);
+	}
 
 	print_exiting_stats(&def);
 	cleanup(&def);
+
+	if (DEBUG_FLAG) {
+		debug("=== exited main function ===");
+	}
 	return 0;
 }

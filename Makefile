@@ -11,7 +11,7 @@ NAME        := ft_ping
 # ---------------------------------------------------------------------------- #
 CC          := cc
 CFLAGS      := -Wall -Wextra -Werror -std=gnu11 -g3
-CPPFLAGS    := -Iinclude -MMD -MP
+CPPFLAGS    := -Iinclude -MMD -MP -D_POSIX_C_SOURCE=200809L -D_DARWIN_C_SOURCE
 LDFLAGS     :=
 LDLIBS      :=
 
