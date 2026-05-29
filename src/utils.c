@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "ft_ping.h"
@@ -40,10 +41,17 @@ void print_recv_packet(response_t *response) {
 
 	size_t packet_size = response->recv_bytes - ip_header_size;
 	char ip_address_str[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str,
+			  INET_ADDRSTRLEN);
 
-	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=<tmp> ms\n",
-		   packet_size, ip_address_str, ntohs(icmp->sequence), ip->ttl);
+	struct timespec current_ts;
+	struct timespec *response_ts = (struct timespec *)icmp->payload;
+	struct timespec time_difference;
+	clock_gettime(CLOCK_MONOTONIC, &current_ts);
+
+
+	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=<tmp> ms\n", packet_size,
+		   ip_address_str, ntohs(icmp->sequence), ip->ttl);
 	// printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number>
 	// ttl=<size_i_guess> time=<time_to_receive> ms\n");
 }
