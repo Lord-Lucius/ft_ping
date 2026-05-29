@@ -15,7 +15,7 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	}
 	uint16_t sequence = 0;
 
-	printf("PING %s (%s): %lu bytes\n", def->target, def->resolved_target,
+	printf("PING %s (%s): %lu data bytes\n", def->target, def->resolved_target,
 		   sizeof(datagram->payload));
 
 	start_time();

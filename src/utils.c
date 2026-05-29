@@ -35,9 +35,11 @@ void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 
 void print_recv_packet(response_t *response) {
 
-	struct iphdr *ip = (struct iphdr *)response->recv_buffer;
-	size_t ip_header_size = (size_t)ip->ihl * 4;
+	uint8_t *buf = (uint8_t *)response->recv_buffer;
+	size_t ip_header_size = (buf[0] & 0x0F) * 4;
+
 	icmp_t *icmp = (icmp_t *)(response->recv_buffer + ip_header_size);
+	uint8_t ttl = buf[8];
 
 	size_t packet_size = response->recv_bytes - ip_header_size;
 	char ip_address_str[INET_ADDRSTRLEN];
@@ -45,15 +47,21 @@ void print_recv_packet(response_t *response) {
 			  INET_ADDRSTRLEN);
 
 	struct timespec current_ts;
-	struct timespec *response_ts = (struct timespec *)icmp->payload;
-	struct timespec time_difference;
 	clock_gettime(CLOCK_MONOTONIC, &current_ts);
+	struct timespec *response_ts = (struct timespec *)icmp->payload;
 
+	long sec_diff = current_ts.tv_sec - response_ts->tv_sec;
+	long nsec_diff = current_ts.tv_nsec - response_ts->tv_nsec;
 
-	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=<tmp> ms\n", packet_size,
-		   ip_address_str, ntohs(icmp->sequence), ip->ttl);
-	// printf("<packet_size> bytes from <ip_address>: icmp_seq=<packet_number>
-	// ttl=<size_i_guess> time=<time_to_receive> ms\n");
+	if (nsec_diff < 0) {
+		sec_diff -= 1;
+		nsec_diff += 1000000000;
+	}
+
+	double rtt_ms = sec_diff * 1000.0 + nsec_diff / 1000000.0;
+
+	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=%.3f ms\n", packet_size,
+		   ip_address_str, ntohs(icmp->sequence), ttl, rtt_ms);
 }
 
 void print_exiting_stats(ping_t *def) {
