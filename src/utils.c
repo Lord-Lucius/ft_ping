@@ -12,20 +12,19 @@
 
 #include "ft_ping.h"
 
-/*
-	PING 127.0.0.1 (127.0.0.1): 56 data bytes
-	64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.080 ms
-	64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.124 ms
-	64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.121 ms
-	64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.128 ms
-	64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.130 ms
-	64 bytes from 127.0.0.1: icmp_seq=5 ttl=64 time=0.154 ms
-	64 bytes from 127.0.0.1: icmp_seq=6 ttl=64 time=0.129 ms
-	^C
-	--- 127.0.0.1 ping statistics ---
-	7 packets transmitted, 7 packets received, 0.0% packet loss
-	round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
-*/
+#if DEBUG_FLAG
+void print_bytes(response_t *response) {
+	printf("Received %zd bytes:\n", response->recv_bytes);
+	for (ssize_t i = 0; i < response->recv_bytes; i++) {
+		printf("%02x ", ((uint8_t *)response->recv_buffer)[i]);
+		if ((i + 1) % 16 == 0) {
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
+#endif
+
 // TODO print_verbose_error ( -v flag )
 void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 	(void)reply, (void)bytes_recv;
@@ -69,28 +68,22 @@ double print_recv_packet(response_t *response) {
 
 void print_exiting_stats(ping_t *def) {
 	printf("\n--- %s ping statistics ---\n", def->target);
-	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n",
-		   def->packet_sent, def->packet_received,
-		   ((float)(def->packet_sent - def->packet_received) * 100.0F) /
-			   ((def->packet_sent > 0) ? def->packet_sent : 1.0));
-	double avg = def->stats.sum / def->packet_received;
-	double variance =
-		(def->stats.sum_squared / def->packet_received) - (avg * avg);
-	if (variance < 0) variance = 0;
-	double stddev = sqrt(variance);
-	printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
-		   def->stats.min, avg, def->stats.max, stddev);
-}
-
-void print_bytes(response_t *response) {
-	printf("Received %zd bytes:\n", response->recv_bytes);
-	for (ssize_t i = 0; i < response->recv_bytes; i++) {
-		printf("%02x ", ((uint8_t *)response->recv_buffer)[i]);
-		if ((i + 1) % 16 == 0) {
-			printf("\n");
-		}
+	if (def->packet_sent) {
+		printf(
+			"%d packets transmitted, %d packets received, %.1f%% packet loss\n",
+			def->packet_sent, def->packet_received,
+			((float)(def->packet_sent - def->packet_received) * 100.0F) /
+				(double)def->packet_sent);
 	}
-	printf("\n");
+	if (def->packet_received) {
+		double avg = def->stats.sum / (def->packet_received);
+		double variance =
+			(def->stats.sum_squared / (def->packet_received)) - (avg * avg);
+		if (variance < 0) variance = 0;
+		double stddev = sqrt(variance);
+		printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+			   def->stats.min, avg, def->stats.max, stddev);
+	}
 }
 
 void debug(char *msg) {

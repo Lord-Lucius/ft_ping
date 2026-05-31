@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <float.h>
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -105,8 +106,8 @@ static int initialize_default_ping(ping_t *p) {
 	p->packet_sent = 0;
 	p->packet_received = 0;
 
-	p->stats.max = INT_MIN;
-	p->stats.min = INT_MAX;
+	p->stats.max = 0.0;
+	p->stats.min = DBL_MAX;
 	p->stats.sum = 0;
 	p->stats.sum_squared = 0;
 

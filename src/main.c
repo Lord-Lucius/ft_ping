@@ -43,7 +43,7 @@ static int handle_recv(ping_t *def, response_t *response, ssize_t n) {
 	def->packet_received++;
 	double rtt = print_recv_packet(response);
 
-	if (rtt == -1) return -1;
+	if (rtt < 0) return -1;
 
 	update_stats(&def->stats, rtt);
 	return 0;
