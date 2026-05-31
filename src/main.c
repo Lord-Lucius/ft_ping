@@ -9,16 +9,43 @@
 
 #include "ft_ping.h"
 
-int run(ping_t *def, icmp_t *datagram, response_t *response) {
-	if (DEBUG_FLAG) {
-		debug("=== entered RUN function ===");
+static int handle_send(ping_t *def, icmp_t *datagram, response_t *response,
+					   uint16_t sequence) {
+	if (create_icmp_datagram(datagram) == -1) return -1;
+	datagram->sequence = htons(sequence);
+	datagram->checksum = 0;
+	datagram->checksum = calculate_checksum(datagram, sizeof(*datagram));
+
+	if (ping_send(def, datagram, response) == -1) return -1;
+
+	def->packet_sended++;
+	g_alarm = 0;
+	return 0;
+}
+
+static void handle_recv(ping_t *def, response_t *response, ssize_t n) {
+	int icmp_type = check_icmp_type(response);
+
+	if (icmp_type != ICMP_FOR_US) {
+		if (def->verbose_flag && icmp_type == ICMP_ANOMALY)
+			print_verbose_error(get_reply_icmp(response), n);
+		return;
 	}
+
+	response->recv_bytes = n;
+	def->packet_received++;
+	print_recv_packet(response);
+}
+
+int run(ping_t *def, icmp_t *datagram, response_t *response) {
+	if (DEBUG_FLAG) debug("=== entered RUN function ===");
+
 	uint16_t sequence = 0;
 
 	printf("PING %s (%s): %lu data bytes\n", def->target, def->resolved_target,
 		   sizeof(datagram->payload));
 
-	start_time();
+	if (start_timer() == -1) fatal("timer couldn't start");
 
 	while (!g_sig) {
 		response->src_len = sizeof(response->src_addr);
@@ -28,44 +55,17 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 							 &response->src_len);
 
 		if (n < 0) {
-			if (errno == EINTR) {
-				if (g_alarm) {
-					create_icmp_datagram(datagram);
-					datagram->sequence = htons(sequence);
-					datagram->checksum = 0;
-					datagram->checksum =
-						calculate_checksum(datagram, sizeof(*datagram));
-
-					if (ping_send(def, datagram, response) == -1) {
-						return -1;
-					}
-
-					sequence++;
-					def->packet_sended++;
-					g_alarm = 0;
-				}
-				continue;
-			}
-			fatal("recvfrom failed");
-			return -1;
-		}
-
-		int t = check_icmp_type(response);
-		if (t != ICMP_FOR_US) {
-			if (def->verbose_flag && t == ICMP_ANOMALY) {
-				print_verbose_error(get_reply_icmp(response), n);
-			}
+			if (errno != EINTR) fatal("recvfrom failed");
+			if (g_alarm &&
+				handle_send(def, datagram, response, sequence++) == -1)
+				return -1;
 			continue;
 		}
 
-		response->recv_bytes = n;
-		def->packet_received++;
-		print_recv_packet(response);
+		handle_recv(def, response, n);
 	}
 
-	if (DEBUG_FLAG) {
-		debug("=== exited RUN function ===");
-	}
+	if (DEBUG_FLAG) debug("=== exited RUN function ===");
 	return 0;
 }
 

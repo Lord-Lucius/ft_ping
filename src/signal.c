@@ -9,7 +9,7 @@
 volatile sig_atomic_t g_sig = 0;
 volatile sig_atomic_t g_alarm = 0;
 
-void start_time(void) {
+int start_timer(void) {
 	struct itimerval timer;
 
 	timer.it_value.tv_sec = 1;
@@ -17,7 +17,9 @@ void start_time(void) {
 	timer.it_interval.tv_sec = 1;
 	timer.it_interval.tv_usec = 0;
 
-	setitimer(ITIMER_REAL, &timer, NULL);
+	if (setitimer(ITIMER_REAL, &timer, NULL) == -1)
+		return -1;
+	return 0;
 }
 
 void handler(int signal) {

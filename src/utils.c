@@ -27,16 +27,16 @@
 	7 packets transmitted, 7 packets received, 0.0% packet loss
 	round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
 */
-
+// TODO print_verbose_error ( -v flag )
 void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 	(void)reply, (void)bytes_recv;
 	printf("test\n");
 }
 
-void print_recv_packet(response_t *response) {
+int print_recv_packet(response_t *response) {
 
 	uint8_t *buf = (uint8_t *)response->recv_buffer;
-	size_t ip_header_size = (buf[0] & 0x0F) * 4;
+	size_t ip_header_size = (size_t)(buf[0] & 0x0F) * 4;
 
 	icmp_t *icmp = (icmp_t *)(response->recv_buffer + ip_header_size);
 	uint8_t ttl = buf[8];
@@ -47,7 +47,10 @@ void print_recv_packet(response_t *response) {
 			  INET_ADDRSTRLEN);
 
 	struct timespec current_ts;
-	clock_gettime(CLOCK_MONOTONIC, &current_ts);
+	if (clock_gettime(CLOCK_MONOTONIC, &current_ts) == -1) {
+		fatal("clock_gettime failed");
+		return -1;
+	}
 	struct timespec *response_ts = (struct timespec *)icmp->payload;
 
 	long sec_diff = current_ts.tv_sec - response_ts->tv_sec;
@@ -58,10 +61,11 @@ void print_recv_packet(response_t *response) {
 		nsec_diff += 1000000000;
 	}
 
-	double rtt_ms = sec_diff * 1000.0 + nsec_diff / 1000000.0;
+	double rtt_ms = (double)sec_diff * 1000.0 + (double)nsec_diff / 1000000.0;
 
 	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=%.3f ms\n", packet_size,
 		   ip_address_str, ntohs(icmp->sequence), ttl, rtt_ms);
+	return 0;
 }
 
 void print_exiting_stats(ping_t *def) {
@@ -69,7 +73,8 @@ void print_exiting_stats(ping_t *def) {
 	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n",
 		   def->packet_sended, def->packet_received,
 		   ((float)(def->packet_sended - def->packet_received) * 100.0F) /
-			   (float)def->packet_sended);
+			   ((def->packet_sended > 0) ? def->packet_sended : 1.0));
+	// TODO    round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
 }
 
 void print_bytes(response_t *response) {

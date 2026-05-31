@@ -62,18 +62,18 @@ typedef struct ping_s {
 } ping_t;
 
 void set_sigaction(void);
-void start_time(void);
+int start_timer(void);
 
 int parse_ping(int ac, char **av, ping_t *p);
 int resolve_addr(ping_t *p);
-void create_icmp_datagram(icmp_t *datagram);
+int create_icmp_datagram(icmp_t *datagram);
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
 uint16_t calculate_checksum(void *data, size_t len);
 icmp_t *get_reply_icmp(response_t *response);
 int check_icmp_type(response_t *response);
 
 void print_verbose_error(icmp_t *reply, ssize_t bytes_recv);
-void print_recv_packet(response_t *response);
+int print_recv_packet(response_t *response);
 void print_exiting_stats(ping_t *def);
 void print_bytes(response_t *response);
 void debug(char *msg);

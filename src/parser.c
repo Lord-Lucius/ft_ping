@@ -124,7 +124,7 @@ int parse_ping(int ac, char **av, ping_t *p) {
 	check_options(ac, av, p);
 
 	if (optind >= ac) {
-		fatal("no tagert given");
+		fatal("no target given");
 		return -1;
 	}
 	p->target = av[optind];

@@ -86,7 +86,7 @@ uint16_t calculate_checksum(void *data, size_t len) {
 	return (uint16_t)~sum;
 }
 
-void create_icmp_datagram(icmp_t *datagram) {
+int create_icmp_datagram(icmp_t *datagram) {
 	if (DEBUG_FLAG) {
 		debug("=== entered CREATE_ICMP_DATAGRAM function ===");
 	}
@@ -97,13 +97,16 @@ void create_icmp_datagram(icmp_t *datagram) {
 	datagram->identifier = htons(getpid() & 0xFFFF);
 	datagram->sequence = 0;
 	struct timespec *ts = (struct timespec *)datagram->payload;
-	clock_gettime(CLOCK_MONOTONIC, ts);
+	if (clock_gettime(CLOCK_MONOTONIC, ts) == -1) {
+		fatal("clock_gettime failed");
+		return -1;
+	}
 	for (int i = 16; i < PAYLOAD_SIZE; i++) {
 		datagram->payload[i] = 0x10 + (i - 16);
 	}
-	datagram->checksum = calculate_checksum(datagram, sizeof(*datagram));
 
 	if (DEBUG_FLAG) {
 		debug("=== exited CREATE_ICMP_DATAGRAM function ===");
 	}
+	return 0;
 }
