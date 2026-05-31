@@ -2,10 +2,11 @@
 #include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <strings.h>
+#include <limits.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -101,8 +102,13 @@ static int initialize_default_ping(ping_t *p) {
 	}
 	p->target = "";
 	p->verbose_flag = 0;
-	p->packet_sended = 0;
+	p->packet_sent = 0;
 	p->packet_received = 0;
+
+	p->stats.max = INT_MIN;
+	p->stats.min = INT_MAX;
+	p->stats.sum = 0;
+	p->stats.sum_squared = 0;
 
 	if (DEBUG_FLAG) {
 		debug("=== exited INITIALIZE_DEFAULT_PING function ===");

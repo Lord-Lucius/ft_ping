@@ -1,7 +1,5 @@
 #include <netdb.h>
 #include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -10,6 +8,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "ft_ping.h"
 
@@ -33,7 +32,7 @@ void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
 	printf("test\n");
 }
 
-int print_recv_packet(response_t *response) {
+double print_recv_packet(response_t *response) {
 
 	uint8_t *buf = (uint8_t *)response->recv_buffer;
 	size_t ip_header_size = (size_t)(buf[0] & 0x0F) * 4;
@@ -65,16 +64,22 @@ int print_recv_packet(response_t *response) {
 
 	printf("%zd bytes from %s: icmp_seq=%u ttl=%u time=%.3f ms\n", packet_size,
 		   ip_address_str, ntohs(icmp->sequence), ttl, rtt_ms);
-	return 0;
+	return rtt_ms;
 }
 
 void print_exiting_stats(ping_t *def) {
 	printf("\n--- %s ping statistics ---\n", def->target);
 	printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n",
-		   def->packet_sended, def->packet_received,
-		   ((float)(def->packet_sended - def->packet_received) * 100.0F) /
-			   ((def->packet_sended > 0) ? def->packet_sended : 1.0));
-	// TODO    round-trip min/avg/max/stddev = 0.080/0.124/0.154/0.020 ms
+		   def->packet_sent, def->packet_received,
+		   ((float)(def->packet_sent - def->packet_received) * 100.0F) /
+			   ((def->packet_sent > 0) ? def->packet_sent : 1.0));
+	double avg = def->stats.sum / def->packet_received;
+	double variance =
+		(def->stats.sum_squared / def->packet_received) - (avg * avg);
+	if (variance < 0) variance = 0;
+	double stddev = sqrt(variance);
+	printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+		   def->stats.min, avg, def->stats.max, stddev);
 }
 
 void print_bytes(response_t *response) {

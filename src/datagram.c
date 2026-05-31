@@ -1,4 +1,4 @@
-#include <sys/errno.h>
+#include <errno.h>
 #include <time.h>
 #include <unistd.h>
 

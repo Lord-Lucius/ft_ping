@@ -1,7 +1,6 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/signal.h>
 #include <sys/time.h>
 
 #include "ft_ping.h"

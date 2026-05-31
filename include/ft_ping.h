@@ -28,6 +28,13 @@
 extern volatile sig_atomic_t g_sig;
 extern volatile sig_atomic_t g_alarm;
 
+typedef struct rtt_stat_s {
+	double min;
+	double max;
+	double sum;
+	double sum_squared;
+} rtt_stat_t;
+
 typedef enum icmp_filter_e {
 	ICMP_FOR_US = 0,
 	ICMP_ANOMALY = 1,
@@ -57,8 +64,9 @@ typedef struct ping_s {
 	char resolved_target[INET_ADDRSTRLEN];
 	struct sockaddr_in dest_addr;
 	int verbose_flag;
-	int packet_sended;
+	int packet_sent;
 	int packet_received;
+	rtt_stat_t stats;
 } ping_t;
 
 void set_sigaction(void);
@@ -73,7 +81,7 @@ icmp_t *get_reply_icmp(response_t *response);
 int check_icmp_type(response_t *response);
 
 void print_verbose_error(icmp_t *reply, ssize_t bytes_recv);
-int print_recv_packet(response_t *response);
+double print_recv_packet(response_t *response);
 void print_exiting_stats(ping_t *def);
 void print_bytes(response_t *response);
 void debug(char *msg);

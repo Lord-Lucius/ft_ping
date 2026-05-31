@@ -9,6 +9,13 @@
 
 #include "ft_ping.h"
 
+static void update_stats(rtt_stat_t *stats, double rtt) {
+	if (rtt < stats->min) stats->min = rtt;
+	if (rtt > stats->max) stats->max = rtt;
+	stats->sum += rtt;
+	stats->sum_squared += rtt * rtt;
+}
+
 static int handle_send(ping_t *def, icmp_t *datagram, response_t *response,
 					   uint16_t sequence) {
 	if (create_icmp_datagram(datagram) == -1) return -1;
@@ -18,23 +25,28 @@ static int handle_send(ping_t *def, icmp_t *datagram, response_t *response,
 
 	if (ping_send(def, datagram, response) == -1) return -1;
 
-	def->packet_sended++;
+	def->packet_sent++;
 	g_alarm = 0;
 	return 0;
 }
 
-static void handle_recv(ping_t *def, response_t *response, ssize_t n) {
+static int handle_recv(ping_t *def, response_t *response, ssize_t n) {
 	int icmp_type = check_icmp_type(response);
 
 	if (icmp_type != ICMP_FOR_US) {
 		if (def->verbose_flag && icmp_type == ICMP_ANOMALY)
 			print_verbose_error(get_reply_icmp(response), n);
-		return;
+		return 0;
 	}
 
 	response->recv_bytes = n;
 	def->packet_received++;
-	print_recv_packet(response);
+	double rtt = print_recv_packet(response);
+
+	if (rtt == -1) return -1;
+
+	update_stats(&def->stats, rtt);
+	return 0;
 }
 
 int run(ping_t *def, icmp_t *datagram, response_t *response) {
@@ -62,7 +74,7 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 			continue;
 		}
 
-		handle_recv(def, response, n);
+		if (handle_recv(def, response, n) == -1) return -1;
 	}
 
 	if (DEBUG_FLAG) debug("=== exited RUN function ===");
