@@ -58,6 +58,10 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	printf("PING %s (%s): %lu data bytes\n", def->target, def->resolved_target,
 		   sizeof(datagram->payload));
 
+	if (TTL_TEST_FLAG == 1) {
+		int ttl = 1;
+		setsockopt(def->socket_fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+	}
 	if (start_timer() == -1) {
 		fatal("timer couldn't start");
 		return -1;

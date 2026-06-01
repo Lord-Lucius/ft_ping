@@ -20,6 +20,7 @@
 #define WHITE "\033[37m"
 
 #define DEBUG_FLAG 0
+#define TTL_TEST_FLAG 0
 #define DEBUG_TXT RED "DEBUG" RESET
 
 #define BUFFER_SIZE 1024
