@@ -26,8 +26,7 @@ void print_bytes(response_t *response) {
 #endif
 
 void print_verbose_error(response_t *response, int icmp_type) {
-	if (!response || response->recv_bytes < 28)
-		return;
+	if (!response || response->recv_bytes < 28) return;
 
 	char ip_address_str[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str,
@@ -35,29 +34,30 @@ void print_verbose_error(response_t *response, int icmp_type) {
 
 	if (icmp_type == ICMP_BAD_CHECKSUM) {
 		printf("checksum mismatch from %s\n", ip_address_str);
-		return ;
+		return;
 	}
 
-	uint8_t *ip_header = (uint8_t *)response->recv_buffer;
-	uint8_t received_ttl = ip_header[8];
-
 	icmp_t *icmp = get_reply_icmp(response);
+	size_t orig_ip_hdr_len = (size_t)(icmp->payload[0] & 0x0F) * 4;
+	icmp_t *icmp_origine = (icmp_t *)(icmp->payload + orig_ip_hdr_len);
 
-	printf("%zd bytes from %s: icmp_seq=%d ttl=%d", response->recv_bytes,
-		   ip_address_str, (icmp ? icmp->sequence : 0), received_ttl);
+	printf("From %s: icmp_seq=%d", ip_address_str, ntohs(icmp_origine->sequence));
 
-	if (icmp) {
-		switch (icmp->type) {
-		case 0:
-			printf(" (Echo Reply)");
+	switch (icmp->type) {
+		case 3:
+			if (icmp->code == 0)
+				printf(" Destination Net Unreachable");
+			else if (icmp->code == 1)
+				printf(" Destination Host Unreachable");
+			else if (icmp->code == 3)
+				printf("Destination Port Unreachable");
 			break;
 		case 11:
-			printf(" (Time to live exceeded)");
+			printf(" Time to live exceeded");
 			break;
 		default:
-			printf(" (type=%d code=%d)", icmp->type, icmp->code);
+			printf(" type=%d code=%d", icmp->type, icmp->code);
 			break;
-		}
 	}
 
 	printf("\n");
