@@ -25,19 +25,46 @@ void print_bytes(response_t *response) {
 }
 #endif
 
-// TODO print_verbose_error ( -v flag )
-void print_verbose_error(icmp_t *reply, ssize_t bytes_recv) {
-	(void)reply, (void)bytes_recv;
-	printf("test\n");
+void print_verbose_error(response_t *response) {
+	if (!response || response->recv_bytes < 28)
+		return;
+
+	char ip_address_str[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str,
+			  INET_ADDRSTRLEN);
+
+	uint8_t *ip_header = (uint8_t *)response->recv_buffer;
+	uint8_t received_ttl = ip_header[8];
+
+	icmp_t *icmp = get_reply_icmp(response);
+
+	printf("%zd bytes from %s: icmp_seq=%d ttl=%d", response->recv_bytes,
+		   ip_address_str, (icmp ? icmp->sequence : 0), received_ttl);
+
+	if (icmp) {
+		switch (icmp->type) {
+		case 0:
+			printf(" (Echo Reply)");
+			break;
+		case 11:
+			printf(" (Time to live exceeded)");
+			break;
+		default:
+			printf(" (type=%d code=%d)", icmp->type, icmp->code);
+			break;
+		}
+	}
+
+	printf("\n");
 }
 
 double print_recv_packet(response_t *response) {
 
-	uint8_t *buf = (uint8_t *)response->recv_buffer;
-	size_t ip_header_size = (size_t)(buf[0] & 0x0F) * 4;
+	uint8_t *ip_header = (uint8_t *)response->recv_buffer;
+	size_t ip_header_size = get_ip_header_size(response);
 
-	icmp_t *icmp = (icmp_t *)(response->recv_buffer + ip_header_size);
-	uint8_t ttl = buf[8];
+	icmp_t *icmp = get_reply_icmp(response);
+	uint8_t ttl = ip_header[8];
 
 	size_t packet_size = response->recv_bytes - ip_header_size;
 	char ip_address_str[INET_ADDRSTRLEN];
@@ -73,7 +100,7 @@ void print_exiting_stats(ping_t *def) {
 			"%d packets transmitted, %d packets received, %.1f%% packet loss\n",
 			def->packet_sent, def->packet_received,
 			((float)(def->packet_sent - def->packet_received) * 100.0F) /
-				(double)def->packet_sent);
+				(float)def->packet_sent);
 	}
 	if (def->packet_received) {
 		double avg = def->stats.sum / (def->packet_received);
@@ -92,7 +119,7 @@ void debug(char *msg) {
 }
 
 void fatal(char *msg) {
-	fprintf(stderr, "[%sERROR%s] %s", RED, RESET, msg);
+	fprintf(stderr, "[%sERROR%s] %s\n", RED, RESET, msg);
 }
 
 void usage(char *program_name, char *call_position) {

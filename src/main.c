@@ -31,15 +31,16 @@ static int handle_send(ping_t *def, icmp_t *datagram, response_t *response,
 }
 
 static int handle_recv(ping_t *def, response_t *response, ssize_t n) {
+	response->recv_bytes = n;
 	int icmp_type = check_icmp_type(response);
 
 	if (icmp_type != ICMP_FOR_US) {
-		if (def->verbose_flag && icmp_type == ICMP_ANOMALY)
-			print_verbose_error(get_reply_icmp(response), n);
+		if (def->verbose_flag &&
+			(icmp_type == ICMP_ANOMALY || icmp_type == ICMP_BAD_CHECKSUM))
+			print_verbose_error(response);
 		return 0;
 	}
 
-	response->recv_bytes = n;
 	def->packet_received++;
 	double rtt = print_recv_packet(response);
 
@@ -57,7 +58,10 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 	printf("PING %s (%s): %lu data bytes\n", def->target, def->resolved_target,
 		   sizeof(datagram->payload));
 
-	if (start_timer() == -1) fatal("timer couldn't start");
+	if (start_timer() == -1) {
+		fatal("timer couldn't start");
+		return -1;
+	}
 
 	while (!g_sig) {
 		response->src_len = sizeof(response->src_addr);
@@ -67,7 +71,10 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 							 &response->src_len);
 
 		if (n < 0) {
-			if (errno != EINTR) fatal("recvfrom failed");
+			if (errno != EINTR) {
+				fatal("recvfrom failed");
+				return -1;
+			}
 			if (g_alarm &&
 				handle_send(def, datagram, response, sequence++) == -1)
 				return -1;
@@ -86,13 +93,13 @@ int main(int ac, char **av) {
 		debug("=== entered main function ===");
 	}
 
-	ping_t def;
-	icmp_t datagram;
-	response_t response;
+	ping_t def = {0};
+	icmp_t datagram = {0};
+	response_t response = {0};
 
 	if (ac <= 1) {
 		usage(av[0], "MAIN :: ac <= 1");
-		exit(0);
+		exit(2);
 	}
 	set_sigaction();
 	if (parse_ping(ac, av, &def) == -1) {
@@ -101,7 +108,6 @@ int main(int ac, char **av) {
 	if (resolve_addr(&def) == -1) {
 		return (1);
 	}
-	memset(&datagram, 0, sizeof(datagram));
 
 	if (run(&def, &datagram, &response) == -1) {
 		return (1);
@@ -113,5 +119,5 @@ int main(int ac, char **av) {
 	if (DEBUG_FLAG) {
 		debug("=== exited main function ===");
 	}
-	return 0;
+	return ((def.packet_received == 0) ? 1 : 0);
 }

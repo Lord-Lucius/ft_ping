@@ -38,7 +38,8 @@ typedef struct rtt_stat_s {
 typedef enum icmp_filter_e {
 	ICMP_FOR_US = 0,
 	ICMP_ANOMALY = 1,
-	ICMP_OUR_REQUEST = 2
+	ICMP_OUR_REQUEST = 2,
+	ICMP_BAD_CHECKSUM = 3
 } icmp_filter_t;
 
 typedef struct response_s {
@@ -78,9 +79,10 @@ int create_icmp_datagram(icmp_t *datagram);
 int ping_send(ping_t *def, icmp_t *datagram, response_t *response);
 uint16_t calculate_checksum(void *data, size_t len);
 icmp_t *get_reply_icmp(response_t *response);
+size_t get_ip_header_size(response_t *response);
 int check_icmp_type(response_t *response);
 
-void print_verbose_error(icmp_t *reply, ssize_t bytes_recv);
+void print_verbose_error(response_t *response);
 double print_recv_packet(response_t *response);
 void print_exiting_stats(ping_t *def);
 void print_bytes(response_t *response);

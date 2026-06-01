@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <bits/getopt_core.h>
 #include <float.h>
 #include <errno.h>
 #include <netdb.h>
@@ -30,7 +31,7 @@ int resolve_addr(ping_t *p) {
 	if (ret != 0) {
 		char tmp[200];
 		snprintf(tmp, sizeof(tmp),
-				 "Failed to resolved destination address (gai_strerror: %s)\n",
+				 "Failed to resolved destination address (gai_strerror: %s)",
 				 gai_strerror(ret));
 		fatal(tmp);
 		return -1;
@@ -41,7 +42,7 @@ int resolve_addr(ping_t *p) {
 		char tmp[200];
 		snprintf(
 			tmp, sizeof(tmp),
-			"Failed to transform network addr to printable addr (errno: %s)\n",
+			"Failed to transform network addr to printable addr (errno: %s)",
 			strerror(errno));
 		fatal(tmp);
 		return -1;
@@ -74,7 +75,7 @@ static void check_options(int ac, char **av, ping_t *p) {
 			break;
 		case '?':
 			usage(av[0], "main :: case '?'");
-			exit(0);
+			exit(optopt == 0 ? 0 : 2);
 		default:
 			break;
 		}
@@ -93,7 +94,7 @@ static int initialize_default_ping(ping_t *p) {
 	p->socket_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (p->socket_fd == -1) {
 		char tmp[200];
-		snprintf(tmp, sizeof(tmp), "Failed to initialize socket (errno: %s)\n",
+		snprintf(tmp, sizeof(tmp), "Failed to initialize socket (errno: %s)",
 				 strerror(errno));
 		fatal(tmp);
 		return (-1);
@@ -101,6 +102,7 @@ static int initialize_default_ping(ping_t *p) {
 	if (DEBUG_FLAG) {
 		debug("passed the socket initialization");
 	}
+
 	p->target = "";
 	p->verbose_flag = 0;
 	p->packet_sent = 0;

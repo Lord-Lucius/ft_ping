@@ -9,7 +9,10 @@ int check_icmp_type(response_t *response) {
 		debug("=== entered CHECK_ICMP_TYPE function ===");
 	}
 
+	size_t icmp_size = response->recv_bytes - get_ip_header_size(response);
 	icmp_t *reply = get_reply_icmp(response);
+
+	if (calculate_checksum(reply, icmp_size) != 0) return ICMP_BAD_CHECKSUM;
 
 	if (reply->type != 0) {
 		if (reply->type == 8) {
@@ -25,6 +28,10 @@ int check_icmp_type(response_t *response) {
 		debug("=== exited CHECK_ICMP_TYPE function ===");
 	}
 	return ICMP_FOR_US;
+}
+
+size_t get_ip_header_size(response_t *response) {
+	return (size_t)(response->recv_buffer[0] & 0x0F) * 4;
 }
 
 icmp_t *get_reply_icmp(response_t *response) {
