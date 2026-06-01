@@ -25,13 +25,18 @@ void print_bytes(response_t *response) {
 }
 #endif
 
-void print_verbose_error(response_t *response) {
+void print_verbose_error(response_t *response, int icmp_type) {
 	if (!response || response->recv_bytes < 28)
 		return;
 
 	char ip_address_str[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &response->src_addr.sin_addr, ip_address_str,
 			  INET_ADDRSTRLEN);
+
+	if (icmp_type == ICMP_BAD_CHECKSUM) {
+		printf("checksum mismatch from %s\n", ip_address_str);
+		return ;
+	}
 
 	uint8_t *ip_header = (uint8_t *)response->recv_buffer;
 	uint8_t received_ttl = ip_header[8];

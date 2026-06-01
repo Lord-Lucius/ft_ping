@@ -37,7 +37,7 @@ static int handle_recv(ping_t *def, response_t *response, ssize_t n) {
 	if (icmp_type != ICMP_FOR_US) {
 		if (def->verbose_flag &&
 			(icmp_type == ICMP_ANOMALY || icmp_type == ICMP_BAD_CHECKSUM))
-			print_verbose_error(response);
+			print_verbose_error(response, icmp_type);
 		return 0;
 	}
 

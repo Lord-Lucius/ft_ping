@@ -82,7 +82,7 @@ icmp_t *get_reply_icmp(response_t *response);
 size_t get_ip_header_size(response_t *response);
 int check_icmp_type(response_t *response);
 
-void print_verbose_error(response_t *response);
+void print_verbose_error(response_t *response, int icmp_type);
 double print_recv_packet(response_t *response);
 void print_exiting_stats(ping_t *def);
 void print_bytes(response_t *response);
