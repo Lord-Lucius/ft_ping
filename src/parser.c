@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <bits/getopt_core.h>
 #include <float.h>
 #include <errno.h>
 #include <netdb.h>
