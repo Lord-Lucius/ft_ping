@@ -29,8 +29,7 @@ int resolve_addr(ping_t *p) {
 	int ret = getaddrinfo(p->target, 0, &hints, &res);
 	if (ret != 0) {
 		char tmp[200];
-		snprintf(tmp, sizeof(tmp),
-				 "Failed to resolved destination address (gai_strerror: %s)",
+		snprintf(tmp, sizeof(tmp), "ping: %s: %s", p->target,
 				 gai_strerror(ret));
 		fatal(tmp);
 		return -1;
@@ -39,10 +38,7 @@ int resolve_addr(ping_t *p) {
 	if (inet_ntop(AF_INET, &(p->dest_addr.sin_addr), p->resolved_target,
 				  INET_ADDRSTRLEN) == NULL) {
 		char tmp[200];
-		snprintf(
-			tmp, sizeof(tmp),
-			"Failed to transform network addr to printable addr (errno: %s)",
-			strerror(errno));
+		snprintf(tmp, sizeof(tmp), "ping: %s: %s", p->target, strerror(errno));
 		fatal(tmp);
 		return -1;
 	}

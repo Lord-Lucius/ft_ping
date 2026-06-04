@@ -124,7 +124,10 @@ void debug(char *msg) {
 }
 
 void fatal(char *msg) {
-	fprintf(stderr, "[%sERROR%s] %s\n", RED, RESET, msg);
+	if (DEBUG_FLAG)
+		fprintf(stderr, "[%sERROR%s] %s\n", RED, RESET, msg);
+	else
+		fprintf(stderr, "%s\n", msg);
 }
 
 void usage(char *program_name, char *call_position) {
@@ -136,9 +139,9 @@ void usage(char *program_name, char *call_position) {
 	}
 	fprintf(stderr, "Usage: \n");
 	fprintf(stderr, "\t%s [options] <destination>\n\n", program_name);
-	fprintf(stderr, "Options: \n\t-v verbose\n\t-? detailed help\n\n");
+	fprintf(stderr, "Options: \n\t-v verbose\n\t-h detailed help\n\n");
 	fprintf(stderr, "Examples: \n");
-	fprintf(stderr, "\t%s -?\n", program_name);
+	fprintf(stderr, "\t%s -h\n", program_name);
 	fprintf(stderr, "\t%s 127.0.0.1\n", program_name);
 	fprintf(stderr, "\t%s -v 127.0.0.1\n\n", program_name);
 }

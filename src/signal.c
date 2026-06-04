@@ -5,8 +5,7 @@
 
 #include "ft_ping.h"
 
-volatile sig_atomic_t g_sig = 0;
-volatile sig_atomic_t g_alarm = 0;
+volatile sig_atomic_t g_signals = 0;
 
 int start_timer(void) {
 	struct itimerval timer;
@@ -22,8 +21,8 @@ int start_timer(void) {
 }
 
 void handler(int signal) {
-	if (signal == SIGINT) g_sig = 1;
-	if (signal == SIGALRM) g_alarm = 1;
+	if (signal == SIGINT) g_signals |= SIG_INT_BIT;
+	if (signal == SIGALRM) g_signals |= SIG_ALRM_BIT;
 }
 
 void set_sigaction(void) {

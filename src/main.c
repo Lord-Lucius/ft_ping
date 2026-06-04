@@ -26,7 +26,7 @@ static int handle_send(ping_t *def, icmp_t *datagram, response_t *response,
 	if (ping_send(def, datagram, response) == -1) return -1;
 
 	def->packet_sent++;
-	g_alarm = 0;
+	g_signals &= ~SIG_ALRM_BIT;
 	return 0;
 }
 
@@ -67,7 +67,7 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 		return -1;
 	}
 
-	while (!g_sig) {
+	while (!(g_signals & SIG_INT_BIT)) {
 		response->src_len = sizeof(response->src_addr);
 
 		ssize_t n = recvfrom(def->socket_fd, response->recv_buffer, BUFFER_SIZE,
@@ -79,9 +79,9 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 				fatal("recvfrom failed");
 				return -1;
 			}
-			if (g_alarm &&
+			if ((g_signals & SIG_ALRM_BIT) &&
 				handle_send(def, datagram, response, sequence++) == -1)
-				return -1;
+					return -1;
 			continue;
 		}
 

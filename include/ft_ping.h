@@ -26,8 +26,10 @@
 #define BUFFER_SIZE 1024
 #define PAYLOAD_SIZE 56
 
-extern volatile sig_atomic_t g_sig;
-extern volatile sig_atomic_t g_alarm;
+extern volatile sig_atomic_t g_signals;
+#define SIG_INT_BIT (1 << 0)
+#define SIG_ALRM_BIT (1 << 1)
+
 
 typedef struct rtt_stat_s {
 	double min;
