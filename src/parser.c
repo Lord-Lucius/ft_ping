@@ -61,7 +61,7 @@ static void check_options(int ac, char **av, ping_t *p) {
 
 	int opt;
 
-	while ((opt = getopt(ac, av, "v?")) != -1) {
+	while ((opt = getopt(ac, av, "v?h")) != -1) {
 		if (DEBUG_FLAG) {
 			char debug_txt[200];
 			snprintf(debug_txt, sizeof(debug_txt),
@@ -75,6 +75,9 @@ static void check_options(int ac, char **av, ping_t *p) {
 		case '?':
 			usage(av[0], "main :: case '?'");
 			exit(optopt == 0 ? 0 : 2);
+		case 'h':
+			usage(av[0], "main :: case 'h'");
+			exit(0);
 		default:
 			break;
 		}
