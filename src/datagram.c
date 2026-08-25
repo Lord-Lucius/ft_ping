@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include "ft_ping.h"
 
@@ -9,7 +10,17 @@ int check_icmp_type(response_t *response) {
 		debug("=== entered CHECK_ICMP_TYPE function ===");
 	}
 
-	size_t icmp_size = response->recv_bytes - get_ip_header_size(response);
+	size_t ip_header_size = get_ip_header_size(response);
+	
+	// Vérifier que le paquet est assez grand pour contenir ICMP minimum (8 octets tête + payload)
+	if ((ssize_t)(ip_header_size + 8) > response->recv_bytes) {
+		if (DEBUG_FLAG) {
+			debug("Packet too small to be valid ICMP");
+		}
+		return ICMP_ANOMALY;
+	}
+
+	size_t icmp_size = response->recv_bytes - ip_header_size;
 	icmp_t *reply = get_reply_icmp(response);
 
 	if (calculate_checksum(reply, icmp_size) != 0) return ICMP_BAD_CHECKSUM;
@@ -77,11 +88,17 @@ uint16_t calculate_checksum(void *data, size_t len) {
 	uint32_t sum = 0;
 	uint16_t *to_work = (uint16_t *)data;
 
-	for (size_t i = 0; i < (len / 2); i++) {
+	for (size_t i = 0; i < len / 2; i++) {
 		sum += to_work[i];
 	}
 	if (len % 2 != 0) {
-		sum += ((uint8_t *)data)[len - 1];
+		union {
+			uint16_t u16;
+			uint8_t bytes[2];
+		} tmp;
+		tmp.bytes[0] = ((uint8_t *)data)[len - 1];
+		tmp.bytes[1] = 0;
+		sum += tmp.u16;
 	}
 	while (sum > 0xFFFF) {
 		sum = (sum & 0xFFFF) + (sum >> 16);
@@ -103,13 +120,16 @@ int create_icmp_datagram(icmp_t *datagram) {
 	datagram->checksum = 0;
 	datagram->identifier = htons(getpid() & 0xFFFF);
 	datagram->sequence = 0;
+	
+	// Initialiser complètement le payload (pour éviter les valeurs imprévisibles)
+	for (int i = 0; i < PAYLOAD_SIZE; i++) {
+		datagram->payload[i] = 0x10 + (i % 256);
+	}
+	
 	struct timespec *ts = (struct timespec *)datagram->payload;
 	if (clock_gettime(CLOCK_MONOTONIC, ts) == -1) {
 		fatal("clock_gettime failed");
 		return -1;
-	}
-	for (int i = 16; i < PAYLOAD_SIZE; i++) {
-		datagram->payload[i] = 0x10 + (i - 16);
 	}
 
 	if (DEBUG_FLAG) {

@@ -55,13 +55,22 @@ int run(ping_t *def, icmp_t *datagram, response_t *response) {
 
 	uint16_t sequence = 0;
 
-	printf("PING %s (%s): %lu data bytes\n", def->target, def->resolved_target,
-		   sizeof(datagram->payload));
+	printf("PING %s (%s): %d data bytes\n", def->target, def->resolved_target,
+       (int)PAYLOAD_SIZE);
+	fflush(stdout);
 
+	// Set TTL pour les tests si nécessaire
 	if (TTL_TEST_FLAG == 1) {
 		int ttl = 1;
 		setsockopt(def->socket_fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	}
+
+	// Envoyer le premier paquet immédiatement avant de démarrer le timer
+	if (handle_send(def, datagram, response, sequence++) == -1) {
+		return -1;
+	}
+
+	// Démarrer le timer (qui déclenchera les envois suivants toutes les secondes)
 	if (start_timer() == -1) {
 		fatal("timer couldn't start");
 		return -1;
