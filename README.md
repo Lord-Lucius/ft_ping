@@ -25,9 +25,8 @@ Under the hood, it crafts **ICMP Echo Request** packets, sends them through a
 **raw socket**, and listens for the matching **ICMP Echo Reply** messages —
 computing the elapsed time with microsecond precision.
 
-This project is part of the **École 42** network curriculum and was built
-strictly from scratch: no calls to the system `ping`, no reuse of an existing
-implementation's source.
+This project was built strictly from scratch: no calls to the system `ping`,
+no reuse of an existing implementation's source.
 
 ---
 
